@@ -1,0 +1,35 @@
+/dts-v1/;
+
+#include "allwinner/sun50i-h5-nanopi-neo-plus2.dts"
+
+/ {
+    /delete-node/ leds;
+
+    mydevice {
+        compatible = "mydevice";
+        #address-cells = <1>;
+        #size-cells = <0>;
+        attribute = "idle";
+
+        mydevice@0 {
+            reg = <0x0>;
+            attribute = "on";
+        };
+
+        mydevice@1 {
+            reg = <0x1>;
+            attribute = "off";
+        };
+
+        mydevice@2 {
+            reg = <0x2>;
+            attribute = "off";
+        };
+    };
+};
+
+&i2c0 {
+        status = "okay";
+};
+
+

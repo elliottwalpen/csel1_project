@@ -1,0 +1,1 @@
+cmd_/home/lmi/workspace/csel1/environment/07_project/kernel/modules.order := {   echo /home/lmi/workspace/csel1/environment/07_project/kernel/fan_driver.ko; :; } | awk '!x[$$0]++' - > /home/lmi/workspace/csel1/environment/07_project/kernel/modules.order

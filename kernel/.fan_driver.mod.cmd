@@ -1,0 +1,1 @@
+cmd_/home/lmi/workspace/csel1/environment/07_project/kernel/fan_driver.mod := { echo  /home/lmi/workspace/csel1/environment/07_project/kernel/fan_driver_module.o; echo; } > /home/lmi/workspace/csel1/environment/07_project/kernel/fan_driver.mod
