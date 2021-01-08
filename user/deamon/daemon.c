@@ -80,19 +80,14 @@ static void ipc_handler(struct object *obj)
     switch (data_to_receive.type) {
         case MQ_TYPE_MODE:
             if (data_to_receive.val == MODE_AUTO || data_to_receive.val == MODE_MANUAL) {
-                //data_to_send.mode = data_to_receive.val;
                 syslog (LOG_INFO, "[COMM] Change mode to %s", modes[data_to_send.mode]);
-                //driver_set_mode(data_to_send.mode);
 				driver_set_mode(data_to_receive.val);
             } else {
                 syslog (LOG_ERR, "[COMM] Receive unknown mode (%d)", data_to_receive.val);
             }
             break;
         case MQ_TYPE_FREQ:
-                //data_to_send.freq = data_to_receive.val;
-                //syslog (LOG_INFO, "[COMM] Change freq to %d", data_to_send.freq);
 				syslog (LOG_INFO, "[COMM] Change freq to %d", data_to_receive.val);
-                //driver_set_freq(data_to_send.freq);
 				driver_set_freq(data_to_receive.val);
                 break;
         case MQ_TYPE_EXIT:
@@ -202,8 +197,8 @@ static int signal_catched = 0;
 
 static void catch_signal (int signal)
 {
-	//if(signal == SIGQUIT)
-	//{
+	syslog (LOG_INFO, "signal=%d catched\n", signal);
+	signal_catched++;
 	lcd_end();
 	free_gpio(K1_NB);
 	free_gpio(K2_NB);
@@ -213,9 +208,6 @@ static void catch_signal (int signal)
 		exit(EXIT_SUCCESS);
 	else
 		exit(EXIT_FAILURE);
-	//}
-	syslog (LOG_INFO, "signal=%d catched\n", signal);
-	signal_catched++;
 }
 
 static void fork_process()
