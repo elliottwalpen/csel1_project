@@ -11,13 +11,10 @@
 
 #include "../common.h"
 
-#define DEAMON             "fandeamon"
-#define DEAMON_PATH        "/home/lmi/workspace/csel1/environment/07_project/user/deamon"
-
 #define SIG_NUM            127
 #define MAX_COMMAND_LENGTH 100
 #define prompt             ">$ "
-#define clear_terminal printf("\033[H0<033[J")
+
 static struct data_from_deamon data_from_deamon;
 
 
