@@ -121,6 +121,9 @@ static void button_handler(struct object *obj)
 			else if(freq == TEN)
 				driver_set_freq(TWENTY);
 			LCD_UPDATE = TRUE;
+			/* Activate led and timer go for short time*/
+			pwrite(led_fd, LED_ON, sizeof(LED_ON), 0);
+			timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
 		}
         break;
     case MODE:
@@ -140,6 +143,9 @@ static void button_handler(struct object *obj)
 			else if(freq == FIVE)
 				driver_set_freq(TWO);
 			LCD_UPDATE = TRUE;
+			/* Activate led and timer go for short time*/
+			pwrite(led_fd, LED_ON, sizeof(LED_ON), 0);
+			timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
 		}
         break;
     default:
@@ -147,10 +153,6 @@ static void button_handler(struct object *obj)
     }
     char buf[10];
     pread(obj->fd, buf, ARRAY_SIZE(buf), 0);
-
-	/* Activate led and timer go for short time*/
-	pwrite(led_fd, LED_ON, sizeof(LED_ON), 0);
-	timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
 
 	/* notify app*/
 	data_to_send.mode = driver_get_mode();
