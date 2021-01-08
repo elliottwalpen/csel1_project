@@ -44,9 +44,9 @@ void toggle_led(int value)
 int get_cpu_temperature(void)
 {
     int te = 0;  
-    int ret = thermal_zone_get_temp(thermal_zone_get_zone_by_name("cpu_thermal"), &temperature);
+    int ret = thermal_zone_get_temp(thermal_zone_get_zone_by_name("cpu-thermal"), &te);
     //pr_info("Return code : %d && Temperature %d \t", ret, temperature);
-    return temperature;
+    return te;
 }
 
 struct timer_list mytimer;

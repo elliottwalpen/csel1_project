@@ -1,4 +1,4 @@
-EXE=fandeamon
+EXE=app
 SRCS=$(wildcard *.c) 
 
 ifeq ($(target),)

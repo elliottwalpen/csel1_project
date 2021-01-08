@@ -16,15 +16,19 @@
 #include <sys/epoll.h>
 #include <errno.h>
 #include <sys/timerfd.h>
+#include <mqueue.h>
 
 #include "fan.h"
 #include "gpio.h"
 #include "lcd.h"
+#include "../common.h"
 
 #define K1_OBJ_IDX 0
 #define K2_OBJ_IDX 1
 #define K3_OBJ_IDX 2
 #define TMR_OBJ_IDX 3
+#define IPC_OBJ_IDX 4
+
 #define TIMER_PERIOD 200
 
 #define UNUSED(x) (void)(x)
@@ -32,7 +36,7 @@
 
 extern int errno;
 
-enum action {INCR, MODE, DECR, TIC};
+enum action {INCR, MODE, DECR, TIC, IPC};
 enum state {FALSE, TRUE};
 
 typedef void (*obj_t)(struct object*);
@@ -51,12 +55,59 @@ static void button_handler(struct object *obj);
 static void ipc_handler(struct object *obj);
 static void timer_handler(struct object *obj);
 
-struct object obj[4] = {
+static void catch_signal (int signal);
+
+struct object obj[5] = {
     [K1_OBJ_IDX] = {.obj=button_handler, .act=INCR, .event = {.events=EPOLLERR, .data.ptr=&obj[K1_OBJ_IDX],}, },
-    [K2_OBJ_IDX] = {.obj=button_handler, .act=MODE, .event = {.events=EPOLLERR, .data.ptr=&obj[K2_OBJ_IDX],}, },
-    [K3_OBJ_IDX] = {.obj=button_handler, .act=DECR, .event = {.events=EPOLLERR, .data.ptr=&obj[K3_OBJ_IDX],}, },
+    [K2_OBJ_IDX] = {.obj=button_handler, .act=DECR, .event = {.events=EPOLLERR, .data.ptr=&obj[K2_OBJ_IDX],}, },
+    [K3_OBJ_IDX] = {.obj=button_handler, .act=MODE, .event = {.events=EPOLLERR, .data.ptr=&obj[K3_OBJ_IDX],}, },
     [TMR_OBJ_IDX] = {.obj=timer_handler, .act=TIC, .event = {.events=EPOLLIN, .data.ptr=&obj[TMR_OBJ_IDX],}, },
+	[IPC_OBJ_IDX] = {.obj=ipc_handler, .act=IPC, .event = {.events=EPOLLIN, .data.ptr=&obj[IPC_OBJ_IDX],}, },
 };
+
+mqd_t msgq_data_to_send;
+struct data_from_deamon data_to_send;
+
+static void ipc_handler(struct object *obj)
+{
+	struct msg_to_deamon data_to_receive;
+    unsigned prio = 0;
+    ssize_t len = mq_receive (obj->fd, (char*)&data_to_receive, sizeof(struct msg_to_deamon), &prio);
+    if (len == -1) {
+        syslog (LOG_ERR, "[COMM] ERROR while reading msgq. Errno: %s\n", strerror(errno));
+    }
+
+    switch (data_to_receive.type) {
+        case MQ_TYPE_MODE:
+            if (data_to_receive.val == MODE_AUTO || data_to_receive.val == MODE_MANUAL) {
+                //data_to_send.mode = data_to_receive.val;
+                syslog (LOG_INFO, "[COMM] Change mode to %s", modes[data_to_send.mode]);
+                //driver_set_mode(data_to_send.mode);
+				driver_set_mode(data_to_receive.val);
+            } else {
+                syslog (LOG_ERR, "[COMM] Receive unknown mode (%d)", data_to_receive.val);
+            }
+            break;
+        case MQ_TYPE_FREQ:
+                //data_to_send.freq = data_to_receive.val;
+                //syslog (LOG_INFO, "[COMM] Change freq to %d", data_to_send.freq);
+				syslog (LOG_INFO, "[COMM] Change freq to %d", data_to_receive.val);
+                //driver_set_freq(data_to_send.freq);
+				driver_set_freq(data_to_receive.val);
+                break;
+        case MQ_TYPE_EXIT:
+            catch_signal(EXIT_SUCCESS);
+            break;
+        default:
+            syslog (LOG_ERR, "[COMM] Receive unknown type (%d)", data_to_receive.type);
+            break;
+    }
+	/* notify app*/
+	data_to_send.mode = driver_get_mode();
+	data_to_send.freq = driver_get_freq();
+	data_to_send.temp = driver_get_temperature();
+	mq_send(msgq_data_to_send, (char*)&data_to_send, sizeof(struct data_from_deamon), 1);
+}
 
 static void button_handler(struct object *obj)
 {
@@ -105,6 +156,12 @@ static void button_handler(struct object *obj)
 	/* Activate led and timer go for short time*/
 	pwrite(led_fd, LED_ON, sizeof(LED_ON), 0);
 	timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
+
+	/* notify app*/
+	data_to_send.mode = driver_get_mode();
+	data_to_send.freq = driver_get_freq();
+	data_to_send.temp = driver_get_temperature();
+	mq_send(msgq_data_to_send, (char*)&data_to_send, sizeof(struct data_from_deamon), 1);
 }
 
 static void timer_handler(struct object *obj)
@@ -121,22 +178,42 @@ static void timer_handler(struct object *obj)
     pread(obj->fd, buf, ARRAY_SIZE(buf), 0);
 }
 
+static mqd_t init_mqueue(const char* name, struct mq_attr* attr)
+{
+	/* open mqueue */
+	mqd_t msgq = mq_open(name, O_RDWR | O_CREAT, MQ_MODE, attr);
+	if (msgq == -1) {
+        syslog (LOG_ERR, "Failed while creating msg queue (%s), errno=%s\n",
+                                                                name, strerror(errno));
+		exit (1);
+	}
+
+
+    syslog (LOG_DEBUG, "msg queue (%s) created\n", name);
+	mq_getattr (msgq, attr);
+    syslog (LOG_DEBUG, "MQ attributs: flags=0%lo, max=%ld, sz=%ld, msg=%ld\n",
+                attr->mq_flags, attr->mq_maxmsg,
+	            attr->mq_msgsize, attr->mq_curmsgs);
+
+	return msgq;
+}
+
 static int signal_catched = 0;
 
 static void catch_signal (int signal)
 {
-	if(signal == SIGQUIT)
-	{
-		lcd_end();
-		free_gpio(K1_NB);
-		free_gpio(K2_NB);
-		free_gpio(K3_NB);
-		free_gpio(LED);
-		if(deinit_fan() == EXIT_SUCCESS)
-			exit(EXIT_SUCCESS);
-		else
-			exit(EXIT_FAILURE);
-	}
+	//if(signal == SIGQUIT)
+	//{
+	lcd_end();
+	free_gpio(K1_NB);
+	free_gpio(K2_NB);
+	free_gpio(K3_NB);
+	free_gpio(LED);
+	if(deinit_fan() == EXIT_SUCCESS)
+		exit(EXIT_SUCCESS);
+	else
+		exit(EXIT_FAILURE);
+	//}
 	syslog (LOG_INFO, "signal=%d catched\n", signal);
 	signal_catched++;
 }
@@ -267,6 +344,10 @@ int main(int argc, char* argv[])
     timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
 
 	/* init ipc */ 
+    /* init mqueues */
+    syslog (LOG_INFO, "MQueue initialisation\n");
+    obj[IPC_OBJ_IDX].fd = init_mqueue(MQ_DATA_TO_DEAMON, &to_deamon_attr);
+    msgq_data_to_send = init_mqueue(MQ_DATA_FROM_DEAMON, &from_deamon_attr);
 
 	/* epoll */
     // multiplexing with epoll
