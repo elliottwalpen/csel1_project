@@ -163,7 +163,7 @@ int main (int argc, char** argv)
         sigaction (i,  &act, 0);
 
     /* Deamon can be start here */
-
+    //execl("/usr/workspace/csel1/environment/07_project/user/deamon/fandeamon", "fandeamon", NULL);
     /* forking process */
     pid_t pid = fork();
 
