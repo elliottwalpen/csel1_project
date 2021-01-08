@@ -123,4 +123,4 @@
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/locale_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/__locale_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/timerfd.h \
- fan.h gpio.h
+ fan.h gpio.h lcd.h

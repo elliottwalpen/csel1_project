@@ -5,13 +5,16 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
-#include <syslog.h>$
+#include <syslog.h>
+#include <syscall.h>
 
 #include "fan.h"
 
 #define FAN_PATH             "/sys/devices/platform/fan-driver/"
+#define finit_module(infd, param_values, flags) syscall(__NR_finit_module, infd, param_values, flags)
+#define delete_module(name, flags) syscall(__NR_delete_module, name, flags)
 
-
+extern int errno;
 static int current_mode = AUTO;
 static int current_freq = TWO;
 
@@ -27,21 +30,35 @@ static const char* sys_name (const char* path, const char* attr)
 
 int init_fan(void)
 {
-    /*int fd = open(MODULE_PATH, O_RDONLY);
+    int fd = open(MODULE_PATH, O_RDONLY);
     if(fd < 0) {
         perror("Unable to load module\n");
         return EXIT_FAILURE;
     }
     else {
-        //if(finit_module(fd, "", 0) != 0) {
-         //   perror("Unable to load module\n");
-         //   return EXIT_FAILURE;
-        //}
+        if(finit_module(fd, "", 0) != 0) {
+            perror("Unable to load module\n");
+            return EXIT_FAILURE;
+        }
         close(fd);
-    }*/
-    /* TODO set default configuration */
+    }
+    /* default configuration */
     driver_set_mode(current_mode);
     return EXIT_SUCCESS;
+}
+
+int deinit_fan(void)
+{
+    if(delete_module(MODULE_NAME, O_NONBLOCK) != 0)
+	{
+		syslog(LOG_INFO, "Error unloading fan module. %s\n", strerror(errno));
+		return EXIT_FAILURE;
+	}
+	else
+	{
+		syslog(LOG_INFO, "Deamon quitted normally\n");
+		return EXIT_SUCCESS;
+	}
 }
 
 float driver_get_temperature(void)
@@ -112,7 +129,7 @@ void driver_set_mode(int mode)
     close(fd);
 }
 
-void driver_set_freq(int freq)
+int driver_set_freq(int freq)
 {
     char buf[100];
     if(current_mode == AUTO)
@@ -132,7 +149,3 @@ void driver_set_freq(int freq)
     close(fd);
 }
 
-void clean_fan(void)
-{
-    /* Drv can be remove here */
-}

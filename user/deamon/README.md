@@ -1,6 +1,6 @@
 
 make sure to have previously installed the module with :
-"insmod fan_driver.ko" from the kernel folder or use "modprobe fan_driver.ko" but this requires to run "sudo make install" from the host inside kernel folder
+"sudo make install" from the host inside kernel folder
 
 for now must be lauched with ./fandeamon
 syslog msg can be showed with "cat /var/log/messages"

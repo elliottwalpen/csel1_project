@@ -1,4 +1,4 @@
-.obj/nano/fan.o: fan.c \
+.obj/nano/lcd.o: lcd.c \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/stdc-predef.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/stdio.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/libc-header-start.h \
@@ -22,15 +22,6 @@
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/struct_FILE.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/stdio_lim.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/sys_errlist.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/fcntl.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/fcntl.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/fcntl-linux.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/struct_timespec.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/stat.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/endian.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/endian.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/byteswap.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/uintn-identity.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/stdlib.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/waitflags.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/waitstatus.h \
@@ -42,45 +33,32 @@
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/time_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/timer_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/stdint-intn.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/endian.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/endian.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/byteswap.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/uintn-identity.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/sys/select.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/select.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/sigset_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/__sigset_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/struct_timeval.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/struct_timespec.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/pthreadtypes.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/thread-shared-types.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/pthreadtypes-arch.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/alloca.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/stdlib-float.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/unistd.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/posix_opt.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/environments.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/confname.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/getopt_posix.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/getopt_core.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/unistd_ext.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/string.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/locale_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/types/__locale_t.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/strings.h \
+ /home/lmi/workspace/nano/buildroot/output/host/opt/ext-toolchain/lib/gcc/aarch64-none-linux-gnu/9.2.1/include/stdbool.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/syslog.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/sys/syslog.h \
+ /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/syslog-path.h \
+ ssd1306.h \
  /home/lmi/workspace/nano/buildroot/output/host/opt/ext-toolchain/lib/gcc/aarch64-none-linux-gnu/9.2.1/include/stdint.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/stdint.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/wchar.h \
  /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/stdint-uintn.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/errno.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/errno.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/linux/errno.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm/errno.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm-generic/errno.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm-generic/errno-base.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/syslog.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/sys/syslog.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/syslog-path.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/syscall.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/sys/syscall.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm/unistd.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm-generic/unistd.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm/bitsperlong.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/asm-generic/bitsperlong.h \
- /home/lmi/workspace/nano/buildroot/output/host/aarch64-buildroot-linux-gnu/sysroot/usr/include/bits/syscall.h \
- fan.h
+ lcd.h fan.h

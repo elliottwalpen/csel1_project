@@ -23,7 +23,7 @@ remember to insert the module with "insmod fan_driver.ko" or "modprobe fan_drive
 static int period_ms = 250; // 2hz default
 static int is_auto = 1; // auto mode default
 static int freq_index = 0;
-static int temperature;
+static int temperature = 0;
 static int DEC_FREQ[] = {2, 5, 10, 20};
 static int DEC_PERIOD[] = {250, 100, 50 ,25};
 #define LED_STATUS_PIN 10
@@ -46,7 +46,7 @@ int get_cpu_temperature(void)
     int te = 0;  
     int ret = thermal_zone_get_temp(thermal_zone_get_zone_by_name("cpu_thermal"), &temperature);
     //pr_info("Return code : %d && Temperature %d \t", ret, temperature);
-    return 33000;
+    return temperature;
 }
 
 struct timer_list mytimer;
@@ -58,18 +58,15 @@ static void timer_callback(struct timer_list *timer)
         int t = get_cpu_temperature();
         //pr_info("Temperature %d \t", t);
         if(t < TEMP_LOW)
-            period_ms = DEC_PERIOD[0];
+            freq_index = 0;
         else if(t < TEMP_INTER)
-            period_ms = DEC_PERIOD[1];
+            freq_index = 1;
         else if(t < TEMP_HIGH)
-            period_ms = DEC_PERIOD[2];
+            freq_index = 2;
         else
-            period_ms = DEC_PERIOD[3];    
+            freq_index = 3;  
     }
-    else
-    {
-        period_ms = DEC_PERIOD[freq_index];
-    }
+    period_ms = DEC_PERIOD[freq_index];
     mod_timer(&mytimer, jiffies + msecs_to_jiffies(period_ms));
     toggle_led(led_value);
     led_value = led_value ? 0:1;
@@ -95,7 +92,7 @@ ssize_t show_temp(struct device* dev, struct device_attribute* attr, char* buf)
 
 ssize_t show_freq(struct device* dev, struct device_attribute* attr, char* buf)
 {
-    strcpy(buf, freq_buf);
+    strcpy(buf, FREQUENCIES[freq_index]);
     return strlen(buf);
 }
 
@@ -117,10 +114,10 @@ ssize_t store_freq(struct device* dev, struct device_attribute* attr, const char
     int i = 0;
     for(i=0; i<(sizeof(FREQUENCIES)/sizeof(FREQUENCIES[0])); i++)
     {
-        pr_info("Index is %d : ", i);
+        //pr_info("Index is %d : ", i);
         if(strcmp(buf, FREQUENCIES[i]) == 0)
         {
-            pr_info("Freq stored : %s", buf);
+            //pr_info("Freq stored : %s", buf);
             freq_index = i;
             int len = sizeof(freq_buf) - 1;
             if(len > count) len = count;
@@ -144,7 +141,7 @@ ssize_t store_mode(struct device* dev, struct device_attribute* attr, const char
         pr_info("Invalid value, type 0 for manual or 1 for automatic\n");
         return len;
     }
-    pr_info("Mode stored : %s", buf);
+    //pr_info("Mode stored : %s", buf);
     len = sizeof(mode_buf) - 1;
     if(len > count) len = count;
     strncpy(mode_buf, buf, len);

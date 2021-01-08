@@ -19,17 +19,21 @@
 
 #include "fan.h"
 #include "gpio.h"
+#include "lcd.h"
 
 #define K1_OBJ_IDX 0
 #define K2_OBJ_IDX 1
 #define K3_OBJ_IDX 2
 #define TMR_OBJ_IDX 3
-#define TIMER_PERIOD 500
+#define TIMER_PERIOD 200
 
 #define UNUSED(x) (void)(x)
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 
+extern int errno;
+
 enum action {INCR, MODE, DECR, TIC};
+enum state {FALSE, TRUE};
 
 typedef void (*obj_t)(struct object*);
 
@@ -41,6 +45,7 @@ static struct object {
 };
 
 struct itimerspec tm_specs;
+enum state LCD_UPDATE = FALSE;
 
 static void button_handler(struct object *obj);
 static void ipc_handler(struct object *obj);
@@ -55,7 +60,6 @@ struct object obj[4] = {
 
 static void button_handler(struct object *obj)
 {
-	syslog(LOG_INFO, "EVENT \n");
 	int mode = driver_get_mode();
 	int freq = driver_get_freq();
 
@@ -70,6 +74,7 @@ static void button_handler(struct object *obj)
 				driver_set_freq(TEN);
 			else if(freq == TEN)
 				driver_set_freq(TWENTY);
+			LCD_UPDATE = TRUE;
 		}
         break;
     case MODE:
@@ -77,6 +82,7 @@ static void button_handler(struct object *obj)
         	driver_set_mode(MANUAL);
 		else if(mode == MANUAL)
 			driver_set_mode(AUTO);
+		LCD_UPDATE = TRUE;
         break;
     case DECR:
 		if(mode == MANUAL)
@@ -87,6 +93,7 @@ static void button_handler(struct object *obj)
 				driver_set_freq(FIVE);
 			else if(freq == FIVE)
 				driver_set_freq(TWO);
+			LCD_UPDATE = TRUE;
 		}
         break;
     default:
@@ -94,10 +101,10 @@ static void button_handler(struct object *obj)
     }
     char buf[10];
     pread(obj->fd, buf, ARRAY_SIZE(buf), 0);
-	syslog(LOG_INFO, "BUTTON pressed \n");
-	/* TODO on led and timer go */
-	//pwrite(led_fd, LED_ON, sizeof(LED_ON), 0);
-	//timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
+
+	/* Activate led and timer go for short time*/
+	pwrite(led_fd, LED_ON, sizeof(LED_ON), 0);
+	timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
 }
 
 static void timer_handler(struct object *obj)
@@ -105,7 +112,7 @@ static void timer_handler(struct object *obj)
     switch(obj->act)
     {
     case TIC:
-        //pwrite(led_fd, LED_OFF, sizeof(LED_OFF), 0);
+        pwrite(led_fd, LED_OFF, sizeof(LED_OFF), 0);
         break;
     default:
         break;
@@ -118,9 +125,20 @@ static int signal_catched = 0;
 
 static void catch_signal (int signal)
 {
+	if(signal == SIGQUIT)
+	{
+		lcd_end();
+		free_gpio(K1_NB);
+		free_gpio(K2_NB);
+		free_gpio(K3_NB);
+		free_gpio(LED);
+		if(deinit_fan() == EXIT_SUCCESS)
+			exit(EXIT_SUCCESS);
+		else
+			exit(EXIT_FAILURE);
+	}
 	syslog (LOG_INFO, "signal=%d catched\n", signal);
 	signal_catched++;
-	/*TODO safe close gpio, fan, fd, ipc*/
 }
 
 static void fork_process()
@@ -168,7 +186,7 @@ int main(int argc, char* argv[])
 	umask(0027);
 
 	// 6. change working directory to appropriate place
-	if (chdir ("/opt") == -1) {
+	if (chdir ("/") == -1) {
 		syslog (LOG_ERR, "ERROR while changing to working directory");
 		exit (1);
 	}
@@ -228,23 +246,25 @@ int main(int argc, char* argv[])
 	}
 
 	// 13. implement daemon body...
+	
 	/* configure gpio's*/
 	syslog (LOG_INFO, "Configure led\n");
-	//led_fd = configure_gpio(LED, "out", NON_EDGE);
-	//pwrite(led_fd, LED_OFF, sizeof(LED_OFF), 0);
+	led_fd = configure_gpio(LED, "out", NON_EDGE);
+	pwrite(led_fd, LED_OFF, sizeof(LED_OFF), 0);
 
 	syslog (LOG_INFO, "Configure buttons\n");
     obj[K1_OBJ_IDX].fd = configure_gpio(K1_NB, "in", "falling");
     obj[K2_OBJ_IDX].fd = configure_gpio(K2_NB, "in", "falling");
     obj[K3_OBJ_IDX].fd = configure_gpio(K3_NB, "in", "falling");
-	/*syslog (LOG_INFO, "Configure timer\n");
+	
+	syslog (LOG_INFO, "Configure timer\n");
     int tfd = timerfd_create(CLOCK_MONOTONIC, 0);    
     obj[TMR_OBJ_IDX].fd = tfd;
     tm_specs.it_interval.tv_sec = 0;
     tm_specs.it_interval.tv_nsec = 0;
     tm_specs.it_value.tv_sec = TIMER_PERIOD / 1000;
-    tm_specs.it_value.tv_nsec = (TIMER_PERIOD % 1000) * 1000000;*/
-    //timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
+    tm_specs.it_value.tv_nsec = (TIMER_PERIOD % 1000) * 1000000;
+    timerfd_settime(obj[TMR_OBJ_IDX].fd, 0, &tm_specs, NULL);
 
 	/* init ipc */ 
 
@@ -262,7 +282,10 @@ int main(int argc, char* argv[])
     for(int i=0; i<ARRAY_SIZE(obj); i++){
         epoll_ctl(epfd, EPOLL_CTL_ADD, obj[i].fd, &obj[i].event);
     }
-	printf("Yo\n");
+
+	/* lcd init*/
+	lcd_init();
+
 	/* loop to handle switches and communication events */
 	syslog (LOG_INFO, "Entering deamon loop\n");
 	while(1) {
@@ -282,7 +305,10 @@ int main(int argc, char* argv[])
                 o->obj(o);
             }
         }
-
+		if(lcd_update) {
+			lcd_update(driver_get_freq(), driver_get_temperature(), driver_get_mode());
+			LCD_UPDATE = FALSE;
+		}
 	}
 
 	syslog (LOG_INFO, "daemon stopped. Number of signals catched=%d\n", signal_catched);
